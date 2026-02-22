@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="GenAI RAG Intelligent Q&A System - Ask questions, get AI-powered answers grounded in your data">
+    <title>GenAI RAG Q&A System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🧠</div>
+                <span class="logo-text">RAG Q&A</span>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="chat">
+                    <span class="nav-icon">💬</span>
+                    <span>Chat</span>
+                </button>
+                <button class="nav-item" data-tab="upload">
+                    <span class="nav-icon">📤</span>
+                    <span>Upload Data</span>
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Settings</span>
+                </button>
+                <button class="nav-item" data-tab="knowledge-graph">
+                    <span class="nav-icon">🕸️</span>
+                    <span>Knowledge Graph</span>
+                </button>
+                <button class="nav-item" data-tab="evaluation">
+                    <span class="nav-icon">📊</span>
+                    <span>Evaluation</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-stats">
+                <h4>Knowledge Base</h4>
+                <div class="stat-item">
+                    <span class="stat-label">Documents</span>
+                    <span class="stat-value" id="doc-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value status-badge" id="status-badge">Ready</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Chat Tab -->
+            <section class="tab-content active" id="chat-tab">
+                <header class="content-header">
+                    <h1>Ask Your Knowledge Base</h1>
+                    <p>Get AI-powered answers grounded in your uploaded data</p>
+                </header>
+
+                <div class="chat-container">
+                    <div class="messages" id="messages">
+                        <div class="message assistant">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-content">
+                                <p>Hello! I'm your AI assistant powered by RAG (Retrieval-Augmented Generation). Upload
+                                    some documents or scrape web pages, then ask me questions about them!</p>
+                                <div class="message-meta">
+                                    <span class="timestamp">Just now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-container">
+                        <div class="input-wrapper">
+                            <textarea id="user-input" placeholder="Ask a question about your data..." rows="1"
+                                autofocus></textarea>
+                            <button class="send-btn" id="send-btn" title="Send message">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Tab -->
+            <section class="tab-content" id="upload-tab">
+                <header class="content-header">
+                    <h1>Add to Knowledge Base</h1>
+                    <p>Ingest data from URLs, files, or raw text</p>
+                </header>
+
+                <div class="upload-container">
+                    <!-- URL Scraping -->
+                    <div class="upload-card">
+                        <div class="card-header">
+                            <span class="card-icon">🌐</span>
+                            <h3>Scrape Web Pages</h3>
+                        </div>
+                        <p class="card-description">Enter URLs to scrape content from web pages</p>
+                        <div class="input-group">
+                            <textarea id="url-input"
+                                placeholder="https://example.com/article&#10;https://example.com/docs&#10;(one URL per line)"
+                                rows="4"></textarea>
+                        </div>
+                        <button class="btn btn-primary" id="scrape-btn">
+                            <span class="btn-icon">🔍</span>
+                            Scrape URLs
+                        </button>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="upload-card">
+                        <div class="card-header">
+                            <span class="card-icon">📁</span>
+                            <h3>Upload Files</h3>
+                        </div>
+                        <p class="card-description">Upload PDF, DOCX, or TXT files</p>
+                        <div class="file-drop-zone" id="file-drop-zone">
+                            <input type="file" id="file-input" accept=".pdf,.docx,.txt" multiple hidden>
+                            <div class="drop-zone-content">
+                                <span class="drop-icon">📄</span>
+                                <p>Drag & drop files here or <span class="browse-link">browse</span></p>
+                                <p class="file-types">PDF, DOCX, TXT (max 10MB)</p>
+                            </div>
+                        </div>
+                        <div class="file-list" id="file-list"></div>
+                        <button class="btn btn-primary" id="upload-btn" disabled>
+                            <span class="btn-icon">⬆️</span>
+                            Upload Files
+                        </button>
+                    </div>
+
+                    <!-- Raw Text -->
+                    <div class="upload-card">
+                        <div class="card-header">
+                            <span class="card-icon">📝</span>
+                            <h3>Add Raw Text</h3>
+                        </div>
+                        <p class="card-description">Paste or type text content directly</p>
+                        <div class="input-group">
+                            <input type="text" id="text-title" placeholder="Title (optional)">
+                            <textarea id="text-input" placeholder="Paste your text content here..." rows="6"></textarea>
+                        </div>
+                        <button class="btn btn-primary" id="add-text-btn">
+                            <span class="btn-icon">➕</span>
+                            Add Text
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section class="tab-content" id="settings-tab">
+                <header class="content-header">
+                    <h1>Settings</h1>
+                    <p>Configure your RAG system</p>
+                </header>
+
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3>API Configuration</h3>
+                        <div class="setting-item">
+                            <label>Backend URL</label>
+                            <input type="text" id="api-url" value="http://localhost:8000"
+                                placeholder="http://localhost:8000">
+                        </div>
+                        <button class="btn btn-secondary" id="test-connection-btn">Test Connection</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Knowledge Base</h3>
+                        <div class="setting-item">
+                            <label>Total Documents</label>
+                            <span id="total-docs">0</span>
+                        </div>
+                        <button class="btn btn-danger" id="clear-kb-btn">Clear Knowledge Base</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>About</h3>
+                        <p><strong>GenAI RAG Q&A System v1.0</strong></p>
+                        <p>A production-grade RAG system using 100% free tools:</p>
+                        <ul>
+                            <li>🧠 HuggingFace Embeddings (local)</li>
+                            <li>💾 ChromaDB Vector Store (local)</li>
+                            <li>🤖 Google Gemini LLM (free tier)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Knowledge Graph Tab -->
+            <section class="tab-content" id="knowledge-graph-tab">
+                <header class="content-header">
+                    <h1>🕸️ Knowledge Graph</h1>
+                    <p>Explore relationships between products, brands, categories, and features</p>
+                </header>
+
+                <div class="kg-container">
+                    <div class="kg-controls">
+                        <div class="kg-stats" id="kg-stats">
+                            <div class="kg-stat">
+                                <span class="kg-stat-value" id="kg-entities">0</span>
+                                <span class="kg-stat-label">Entities</span>
+                            </div>
+                            <div class="kg-stat">
+                                <span class="kg-stat-value" id="kg-relationships">0</span>
+                                <span class="kg-stat-label">Relationships</span>
+                            </div>
+                            <div class="kg-stat">
+                                <span class="kg-stat-value" id="kg-visible-nodes">0</span>
+                                <span class="kg-stat-label">Visible</span>
+                            </div>
+                        </div>
+                        <div class="kg-actions">
+                            <input type="text" id="kg-search" placeholder="🔍 Search entities...">
+                            <select id="kg-filter">
+                                <option value="">All Types</option>
+                                <option value="brand">🏷️ Brands</option>
+                                <option value="category">📁 Categories</option>
+                                <option value="product">📦 Products</option>
+                                <option value="price_range">💰 Price Ranges</option>
+                                <option value="feature">✨ Features</option>
+                            </select>
+                            <button class="btn btn-secondary" id="refresh-graph-btn">🔄 Refresh</button>
+                        </div>
+                    </div>
+
+                    <div class="kg-legend">
+                        <span class="legend-item" data-type="product">
+                            <span class="legend-dot" style="background: #6366f1"></span> Product
+                        </span>
+                        <span class="legend-item" data-type="brand">
+                            <span class="legend-dot" style="background: #22c55e"></span> Brand
+                        </span>
+                        <span class="legend-item" data-type="category">
+                            <span class="legend-dot" style="background: #f59e0b"></span> Category
+                        </span>
+                        <span class="legend-item" data-type="price_range">
+                            <span class="legend-dot" style="background: #ef4444"></span> Price Range
+                        </span>
+                        <span class="legend-item" data-type="feature">
+                            <span class="legend-dot" style="background: #8b5cf6"></span> Feature
+                        </span>
+                    </div>
+
+                    <div class="kg-main-area">
+                        <div class="kg-graph-wrapper">
+                            <div class="kg-graph" id="kg-graph">
+                                <svg id="graph-svg"></svg>
+                            </div>
+                            <!-- Zoom Controls -->
+                            <div class="kg-zoom-controls">
+                                <button class="zoom-btn" id="zoom-in" title="Zoom In">➕</button>
+                                <button class="zoom-btn" id="zoom-out" title="Zoom Out">➖</button>
+                                <button class="zoom-btn" id="zoom-reset" title="Reset View">🔄</button>
+                                <button class="zoom-btn" id="zoom-fit" title="Fit to Screen">⬜</button>
+                            </div>
+                        </div>
+
+                        <!-- Entity Details Panel -->
+                        <div class="kg-details-panel" id="kg-details">
+                            <div class="kg-details-header">
+                                <h3>📋 Entity Details</h3>
+                                <button class="close-btn" id="close-details" title="Close">✕</button>
+                            </div>
+                            <div class="kg-details-content">
+                                <div class="kg-details-placeholder" id="details-placeholder">
+                                    <span class="placeholder-icon">👆</span>
+                                    <p>Click on any node to view detailed information</p>
+                                </div>
+                                <div class="kg-entity-info" id="entity-info" style="display: none;">
+                                    <div class="entity-header" id="entity-header">
+                                        <span class="entity-type-badge" id="entity-type-badge"></span>
+                                        <h4 id="entity-name"></h4>
+                                    </div>
+                                    <div class="entity-properties" id="entity-properties"></div>
+                                    <div class="entity-relationships">
+                                        <h5>🔗 Related Entities</h5>
+                                        <div class="relationships-list" id="relationships-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats Bar -->
+                    <div class="kg-quick-stats">
+                        <div class="quick-stat" id="stat-products">
+                            <span class="quick-stat-icon">📦</span>
+                            <span class="quick-stat-count" id="count-products">0</span>
+                            <span class="quick-stat-label">Products</span>
+                        </div>
+                        <div class="quick-stat" id="stat-brands">
+                            <span class="quick-stat-icon">🏷️</span>
+                            <span class="quick-stat-count" id="count-brands">0</span>
+                            <span class="quick-stat-label">Brands</span>
+                        </div>
+                        <div class="quick-stat" id="stat-categories">
+                            <span class="quick-stat-icon">📁</span>
+                            <span class="quick-stat-count" id="count-categories">0</span>
+                            <span class="quick-stat-label">Categories</span>
+                        </div>
+                        <div class="quick-stat" id="stat-price-ranges">
+                            <span class="quick-stat-icon">💰</span>
+                            <span class="quick-stat-count" id="count-price-ranges">0</span>
+                            <span class="quick-stat-label">Price Ranges</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Evaluation Tab -->
+            <section class="tab-content" id="evaluation-tab">
+                <header class="content-header">
+                    <h1>📊 Research Evaluation</h1>
+                    <p>Run ablation studies and compare RAG vs GraphRAG performance</p>
+                </header>
+
+                <div class="evaluation-container">
+                    <!-- Single Question Test - FIRST for easy access -->
+                    <div class="eval-card single-test-card">
+                        <div class="card-header">
+                            <span class="card-icon">🔬</span>
+                            <h3>Quick Test - Compare Modes</h3>
+                        </div>
+                        <p class="card-description">Test any question across all retrieval modes instantly</p>
+                        <div class="single-test-inputs">
+                            <input type="text" id="single-question-input"
+                                placeholder="Enter your question here (e.g., What Samsung products do you have?)"
+                                style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-size: 1rem; margin-bottom: 10px;">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" id="single-ground-truth" placeholder="Ground truth (optional)"
+                                    style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary);">
+                                <button class="btn btn-primary" id="test-single-btn" style="white-space: nowrap;">
+                                    <span class="btn-icon">🧪</span>
+                                    Test Now
+                                </button>
+                            </div>
+                        </div>
+                        <div class="single-test-results" id="single-test-results"
+                            style="display: none; margin-top: 15px;">
+                            <!-- Results will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Benchmark Stats Card -->
+                    <div class="eval-card">
+                        <div class="card-header">
+                            <span class="card-icon">📋</span>
+                            <h3>Benchmark Dataset</h3>
+                        </div>
+                        <div class="eval-stats" id="eval-benchmark-stats">
+                            <div class="eval-stat">
+                                <span class="eval-stat-value" id="eval-total-questions">58</span>
+                                <span class="eval-stat-label">Questions</span>
+                            </div>
+                            <div class="eval-stat">
+                                <span class="eval-stat-value" id="eval-categories">5</span>
+                                <span class="eval-stat-label">Categories</span>
+                            </div>
+                            <div class="eval-stat">
+                                <span class="eval-stat-value" id="eval-graph-required">42</span>
+                                <span class="eval-stat-label">Graph Required</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Run Evaluation Card -->
+                    <div class="eval-card">
+                        <div class="card-header">
+                            <span class="card-icon">🚀</span>
+                            <h3>Run Ablation Study</h3>
+                        </div>
+                        <p class="card-description">Compare all modes on multiple questions</p>
+                        <div class="eval-options">
+                            <div class="eval-option">
+                                <label>Category:</label>
+                                <select id="eval-category-filter">
+                                    <option value="">All Categories</option>
+                                    <option value="entity_lookup">Entity Lookup</option>
+                                    <option value="relationship">Relationship</option>
+                                    <option value="comparison">Comparison</option>
+                                    <option value="aggregation">Aggregation</option>
+                                    <option value="reasoning">Reasoning</option>
+                                </select>
+                            </div>
+                            <div class="eval-option">
+                                <label>Limit:</label>
+                                <select id="eval-limit">
+                                    <option value="5">5 Questions</option>
+                                    <option value="10">10 Questions</option>
+                                    <option value="20">20 Questions</option>
+                                    <option value="">All (58)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="run-evaluation-btn">
+                            <span class="btn-icon">▶️</span>
+                            Run Evaluation
+                        </button>
+
+                        <!-- Progress Bar -->
+                        <div class="eval-progress" id="eval-progress" style="display: none; margin-top: 15px;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="eval-progress-fill"></div>
+                            </div>
+                            <p class="progress-text" id="eval-progress-text">Starting evaluation...</p>
+                        </div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="eval-card results-card" id="eval-results-card" style="display: none;">
+                        <div class="card-header">
+                            <span class="card-icon">📈</span>
+                            <h3>Ablation Study Results</h3>
+                        </div>
+
+                        <div class="eval-summary-table">
+                            <table id="eval-summary-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Vector-Only</th>
+                                        <th>Graph-Only</th>
+                                        <th>Hybrid (Ours)</th>
+                                        <th>Best</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eval-results-body">
+                                    <!-- Results will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="eval-actions">
+                            <button class="btn btn-secondary" id="export-results-btn">
+                                <span class="btn-icon">📥</span>
+                                Export CSV
+                            </button>
+                            <button class="btn btn-secondary" id="copy-markdown-btn">
+                                <span class="btn-icon">📋</span>
+                                Copy Markdown
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loading-text">Processing...</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+# Core Framework
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+pydantic-settings
+
+# Data Acquisition - Web Scraping & APIs
+beautifulsoup4
+requests
+aiohttp
+
+# Data Processing
+numpy
+pandas
+
+# Text Processing & Chunking
+langchain
+langchain-community
+langchain-text-splitters
+
+# Embeddings - FREE (HuggingFace local)
+sentence-transformers
+
+# LLM - Google Gemini (FREE tier)
+google-generativeai
+
+# Document Processing
+pypdf
+python-docx
+
+# API & File Upload
+python-multipart
+aiofiles
+
+# Utilities
+tqdm
+tenacity
