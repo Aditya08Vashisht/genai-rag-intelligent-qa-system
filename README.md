@@ -9,9 +9,10 @@ A **production-grade Retrieval-Augmented Generation (RAG)** system that transfor
 
 <img width="1920" height="946" alt="image" src="https://github.com/user-attachments/assets/06961849-3d00-4262-b6e3-f9fd0a720b0e" />
 
+<img width="1920" height="1015" alt="image" src="https://github.com/user-attachments/assets/26b0b6bc-a70c-4e44-ac1f-053ccdc12b48" />
+
 <img width="1907" height="928" alt="image" src="https://github.com/user-attachments/assets/e8b91025-f2f6-4a76-a391-379a6461ff39" />
 
-<img width="1920" height="1015" alt="image" src="https://github.com/user-attachments/assets/26b0b6bc-a70c-4e44-ac1f-053ccdc12b48" />
 
 ---
 
